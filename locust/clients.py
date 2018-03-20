@@ -1,4 +1,6 @@
+import logging
 import re
+import sys
 import time
 
 import requests
@@ -12,6 +14,8 @@ from six.moves.urllib.parse import urlparse, urlunparse
 
 from . import events
 from .exception import CatchResponseError, ResponseError
+from .log import console_logger, setup_logging
+from .awscurl import make_request
 
 absolute_http_url_regexp = re.compile(r"^https?://", re.I)
 
@@ -155,7 +159,20 @@ class HttpSession(requests.Session):
         Safe mode has been removed from requests 1.x.
         """
         try:
-            return requests.Session.request(self, method, url, **kwargs)
+            
+            uri, data, headers, method = make_request(
+                 method = method,
+                 service = 'sagemaker',
+                 region = 'us-east-2',
+                 uri = url,
+                 headers = {'Content-Type': 'text/csv'},
+                 data = kwargs['data'],
+                 profile = 'default',
+                 access_key = None,
+                 secret_key = None,
+                 security_token = None)
+            return requests.request(method, uri, headers=headers, data=data)
+            # return requests.Session.request(self, method, url, **kwargs)
         except (MissingSchema, InvalidSchema, InvalidURL):
             raise
         except RequestException as e:
@@ -215,10 +232,12 @@ class ResponseContextManager(LocustResponse):
                 if response.status_code == 404:
                     response.success()
         """
+        
         events.request_success.fire(
             request_type=self.locust_request_meta["method"],
             name=self.locust_request_meta["name"],
-            response_time=self.locust_request_meta["response_time"],
+            #response_time=self.locust_request_meta["response_time"],
+            response_time=300000000,
             response_length=self.locust_request_meta["content_size"],
         )
         self._is_reported = True
