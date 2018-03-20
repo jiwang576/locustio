@@ -5,7 +5,7 @@ import sys
 class UserTasks(TaskSet):
     @task
     def invocations(self):
-        fname = os.environ['HOME'] + "/sagemaker/perf_test/xgboost_pkl/local_test/iris_inference_data.csv"
+        fname = os.getcwd() + "/iris_inference_data.csv"
         with open(fname, 'rb') as f:
             payload = f.read()
             self.client.post("/invocations", payload)
