@@ -113,12 +113,12 @@ class HttpSession(requests.Session):
         
         # set up pre_request hook for attaching meta data to the request object
         request_meta["method"] = method
-        request_meta["start_time"] = time.time()
         
-        response= self._send_request_safe_mode(method, url, **kwargs)
+        response, start_time, response_time = self._send_request_safe_mode(method, url, **kwargs)
         
         # record the consumed time
-        request_meta["response_time"] = int((time.time() - request_meta["start_time"]) * 1000)
+        request_meta["start_time"] = start_time
+        request_meta["response_time"] = response_time
         
         request_meta["name"] = name or 'placeholder' or (response.history and response.history[0] or response).request.path_url
         
@@ -158,6 +158,8 @@ class HttpSession(requests.Session):
         
         Safe mode has been removed from requests 1.x.
         """
+        wrap_start_time = time.time()
+
         try:
             if 'auth' in kwargs:
                 self.headers['Content-Type'] = 'application/json'
@@ -165,7 +167,10 @@ class HttpSession(requests.Session):
                 data = kwargs['data']
                 method = method
                 kwargs.pop('auth')
-                return requests.Session.request(self, method, url, **kwargs)
+                start_time = time.time()
+                response = requests.Session.request(self, method, url, **kwargs)
+                response_time = (time.time() - start_time) * 1000
+                return response, start_time, response_time
                 
             else:
                 uri, data, headers, method = make_request(
@@ -179,7 +184,10 @@ class HttpSession(requests.Session):
                      access_key = None,
                      secret_key = None,
                      security_token = None)
-                return requests.request(method, uri, headers=headers, data=data)
+                start_time = time.time()
+                response = requests.Session.request(self, method, uri, headers=headers, data=data)
+                response_time = (time.time() - start_time) * 1000
+                return response, start_time, response_time
         except (MissingSchema, InvalidSchema, InvalidURL):
             raise
         except RequestException as e:
@@ -187,7 +195,8 @@ class HttpSession(requests.Session):
             r.error = e
             r.status_code = 0  # with this status_code, content returns None
             r.request = Request(method, url).prepare() 
-            return r
+            wrap_response_time = (time.time() - wrap_start_time) * 1000
+            return r, wrap_start_time, wrap_response_time
 
 
 class ResponseContextManager(LocustResponse):
