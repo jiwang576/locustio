@@ -115,14 +115,14 @@ class HttpSession(requests.Session):
         request_meta["method"] = method
         request_meta["start_time"] = time.time()
         
-        response = self._send_request_safe_mode(method, url, **kwargs)
+        response= self._send_request_safe_mode(method, url, **kwargs)
         
         # record the consumed time
         request_meta["response_time"] = int((time.time() - request_meta["start_time"]) * 1000)
         
-    
-        request_meta["name"] = name or (response.history and response.history[0] or response).request.path_url
+        request_meta["name"] = name or 'placeholder' or (response.history and response.history[0] or response).request.path_url
         
+        request_meta["content_size"] = 0
         # get the length of the content, but if the argument stream is set to True, we take
         # the size from the content-length header, in order to not trigger fetching of the body
         if kwargs.get("stream", False):
@@ -159,20 +159,27 @@ class HttpSession(requests.Session):
         Safe mode has been removed from requests 1.x.
         """
         try:
-            
-            uri, data, headers, method = make_request(
-                 method = method,
-                 service = 'sagemaker',
-                 region = 'us-east-2',
-                 uri = url,
-                 headers = {'Content-Type': 'text/csv'},
-                 data = kwargs['data'],
-                 profile = 'default',
-                 access_key = None,
-                 secret_key = None,
-                 security_token = None)
-            return requests.request(method, uri, headers=headers, data=data)
-            # return requests.Session.request(self, method, url, **kwargs)
+            if 'auth' in kwargs:
+                self.headers['Content-Type'] = 'application/json'
+                uri = url
+                data = kwargs['data']
+                method = method
+                kwargs.pop('auth')
+                return requests.Session.request(self, method, url, **kwargs)
+                
+            else:
+                uri, data, headers, method = make_request(
+                     method = method,
+                     service = 'sagemaker',
+                     region = 'us-east-2',
+                     uri = url,
+                     headers = {'Content-Type': 'text/csv'},
+                     data = kwargs['data'],
+                     profile = 'default',
+                     access_key = None,
+                     secret_key = None,
+                     security_token = None)
+                return requests.request(method, uri, headers=headers, data=data)
         except (MissingSchema, InvalidSchema, InvalidURL):
             raise
         except RequestException as e:
