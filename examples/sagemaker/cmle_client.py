@@ -17,6 +17,6 @@ class WebsiteUser(HttpLocust):
     """
     Locust user class that does requests to the locust web server running on localhost
     """
-    min_wait = 2000
-    max_wait = 5000
+    min_wait = 200
+    max_wait = 200
     task_set = UserTasks
