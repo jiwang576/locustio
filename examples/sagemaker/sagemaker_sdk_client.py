@@ -1,11 +1,16 @@
 from locust import events, HttpLocust, TaskSet, task
 import boto3
+import logging
 import os
 import time
 
-endpoint_name = "BuiltInXGBoostEndpointPkl-2018-03-15-20-25-44"
+endpoint_name = "CriteoXgboostBuiltin-2018-03-22-16-57-01"
 task_name = "SagemMaker SDK Benchmark"
 
+print("The botocore log level is: {}".format(logging.getLogger('botocore').level))
+print("The botocore.vendored.requests.packages.urllib3.connectionpool log level is: {}".format(logging.getLogger('botocore.vendored.requests.packages.urllib3.connectionpool').level))
+
+logging.getLogger('botocore').setLevel(logging.ERROR)
 class SageMakerSdkClient(object):
   def __init__(self):
       self.runtime_client = boto3.client('runtime.sagemaker')
@@ -31,7 +36,7 @@ class SageMakerSdkClient(object):
 class UserTasks(TaskSet):
     @task
     def invocations(self):
-        fname = os.getcwd() + "/iris_inference_data.csv"
+        fname = os.getcwd() + "/criteo_inference_data.csv"
         with open(fname, 'rb') as f:
             payload = f.read()
         self.client.execute(name=task_name, endpoint_name=endpoint_name, content_type='text/csv', payload=payload)

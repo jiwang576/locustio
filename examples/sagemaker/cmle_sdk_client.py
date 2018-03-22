@@ -2,12 +2,16 @@ from locust import events, HttpLocust, TaskSet, task
 from googleapiclient import discovery
 from oauth2client.client import GoogleCredentials
 import json
+import logging
 import os
 import time
 
+logging.getLogger('oauth2client').setLevel(logging.ERROR)
+logging.getLogger('googleapiclient.discovery').setLevel(logging.ERROR)
+
 project = "cmljiwang"
-model = "model_xgboost_iris"
-version = "version_xgboost_iris"
+model = "xgboost_criteo"
+version = "xgboost_criteo"
 task_name = "CMLE SDK Benchmark"
 
 class CmleSdkClient(object):
@@ -32,12 +36,12 @@ class CmleSdkClient(object):
 class UserTasks(TaskSet):
     @task
     def invocations(self):
-        fname = os.getcwd() + "/iris_inference_data.json"
+        fname = os.getcwd() + "/criteo_inference_data.json"
         with open(fname, 'rb') as f:
             payload = json.loads(f.read())
 
         credentials = GoogleCredentials.get_application_default()
-        api = discovery.build('ml', 'v1', credentials=credentials)
+        api = discovery.build('ml', 'v1', credentials=credentials, cache_discovery=False)
         parent = "projects/{}/models/{}/versions/{}".format(project, model, version)
         self.client.execute(name=task_name, api=api, parent=parent, payload=payload)
 

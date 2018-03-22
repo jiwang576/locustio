@@ -5,7 +5,7 @@ import sys
 class UserTasks(TaskSet):
     @task
     def invocations(self):
-        fname = os.getcwd() + "/iris_inference_data.csv"
+        fname = os.getcwd() + "/criteo_inference_data.csv"
         with open(fname, 'rb') as f:
             payload = f.read()
             self.client.post("/invocations", payload)
