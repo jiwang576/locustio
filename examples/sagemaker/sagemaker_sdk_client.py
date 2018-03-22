@@ -8,21 +8,21 @@ task_name = "SagemMaker SDK Benchmark"
 
 class SageMakerSdkClient(object):
   def __init__(self):
-      pass
+      self.runtime_client = boto3.client('runtime.sagemaker')
 
   def get_time_for_prediction(self, runtime_client, endpoint_name, content_type, payload):
       start_time = time.time()
-      response = runtime_client.invoke_endpoint(EndpointName=endpoint_name,
+      response = self.runtime_client.invoke_endpoint(EndpointName=endpoint_name,
                                               ContentType=content_type,
                                               Body=payload)
       end_time = time.time()
       return (end_time - start_time) * 1000
 
   def execute(self, name, endpoint_name, content_type, payload):
-      runtime_client = boto3.client('runtime.sagemaker')
+      #runtime_client = boto3.client('runtime.sagemaker')
       start_time = time.time()
       try:
-          response_time = self.get_time_for_prediction(runtime_client, endpoint_name, content_type, payload)
+          response_time = self.get_time_for_prediction(self.runtime_client, endpoint_name, content_type, payload)
           events.request_success.fire(request_type="execute", name=name, response_time=response_time, response_length=0)
       except Exception as e:
           totla_time = (time.time() - start_time) * 1000
