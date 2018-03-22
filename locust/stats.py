@@ -3,6 +3,7 @@ import time
 from collections import namedtuple, OrderedDict
 from copy import copy
 from itertools import chain
+import pickle
 
 import gevent
 import six
@@ -216,6 +217,8 @@ class StatsEntry(object):
         self.num_failures = 0
         self.total_response_time = 0
         self.response_times = {}
+        self.response_timestamps = []
+        self.response_times_precise = []
         self.min_response_time = None
         self.max_response_time = 0
         self.last_request_timestamp = int(time.time())
@@ -269,6 +272,10 @@ class StatsEntry(object):
         # increase request count for the rounded key in response time dict
         self.response_times.setdefault(rounded_response_time, 0)
         self.response_times[rounded_response_time] += 1
+
+        # extra logic for data export
+        self.response_timestamps.append(time.time())
+        self.response_times_precise.append(response_time)
 
     def log_error(self, error):
         self.num_failures += 1
@@ -657,8 +664,9 @@ def stats_printer():
 
 def stats_writer(base_filepath):
     """Writes the csv files for the locust run."""
+    write_timestamp = time.strftime("%Y-%m-%d-%H-%M-%S", time.gmtime())
     while True:
-        write_stat_csvs(base_filepath)
+        write_stat_csvs(base_filepath + "/{}".format(write_timestamp))
         gevent.sleep(CSV_STATS_INTERVAL_SEC)
 
 
@@ -669,6 +677,12 @@ def write_stat_csvs(base_filepath):
 
     with open(base_filepath + '_distribution.csv', 'w') as f:
         f.write(distribution_csv())
+
+    with open(base_filepath + '_response_timestamps', 'wb') as f:
+        pickle.dump(final_response_timestamps(), f)
+
+    with open(base_filepath + '_response_times', 'wb') as f:
+        pickle.dump(final_response_times(), f)
 
 
 def sort_stats(stats):
@@ -733,3 +747,11 @@ def distribution_csv():
             rows.append('"%s",0,"N/A","N/A","N/A","N/A","N/A","N/A","N/A","N/A","N/A"' % s.name)
 
     return "\n".join(rows)
+
+def final_response_timestamps():
+  from . import runners
+  return runners.locust_runner.stats.total.response_timestamps
+
+def final_response_times():
+  from . import runners
+  return runners.locust_runner.stats.total.response_times_precise
