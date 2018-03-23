@@ -30,7 +30,7 @@ class SageMakerSdkClient(object):
           response_time = self.get_time_for_prediction(self.runtime_client, endpoint_name, content_type, payload)
           events.request_success.fire(request_type="execute", name=name, response_time=response_time, response_length=0)
       except Exception as e:
-          totla_time = (time.time() - start_time) * 1000
+          total_time = (time.time() - start_time) * 1000
           events.request_failure.fire(request_type="execute", name=name, response_time=total_time, exception=e)
 
 class UserTasks(TaskSet):
@@ -45,6 +45,8 @@ class WebsiteUser(HttpLocust):
     """
     Locust user class that does requests to the locust web server running on localhost
     """
+
+    host = "whatever. it's short circuited"
 
     def __init__(self, *args, **kwargs):
       super(WebsiteUser, self).__init__(*args, **kwargs)
