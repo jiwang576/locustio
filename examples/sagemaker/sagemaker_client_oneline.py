@@ -1,17 +1,14 @@
 from locust import HttpLocust, TaskSet, task
 import os
-import subprocess
 import sys
 
 class UserTasks(TaskSet):
     @task
     def invocations(self):
-        fname = os.getcwd() + "/criteo_inference_data.json"
+        fname = os.getcwd() + "/one_line_criteo.csv"
         with open(fname, 'rb') as f:
             payload = f.read()
-        token = subprocess.check_output(["gcloud", "auth", "print-access-token"])
-        self.client.headers['Authorization'] = 'Bearer ' + token[:-1]
-        self.client.post("", payload, auth="something")
+            self.client.post("/invocations", payload)
             
 class WebsiteUser(HttpLocust):
     """
