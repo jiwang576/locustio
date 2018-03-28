@@ -161,6 +161,7 @@ class HttpSession(requests.Session):
         wrap_start_time = time.time()
 
         try:
+            # hard-coded for CMLE prediction
             if 'auth' in kwargs:
                 self.headers['Content-Type'] = 'application/json'
                 uri = url
@@ -172,6 +173,7 @@ class HttpSession(requests.Session):
                 response_time = (time.time() - start_time) * 1000
                 return response, start_time, response_time
                 
+            # hard-coded for Sagemaker prediction
             else:
                 uri, data, headers, method = make_request(
                      method = method,
