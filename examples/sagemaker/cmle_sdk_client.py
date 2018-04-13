@@ -9,9 +9,9 @@ import time
 logging.getLogger('oauth2client').setLevel(logging.ERROR)
 logging.getLogger('googleapiclient.discovery').setLevel(logging.ERROR)
 
-project = "cmljiwang"
+project = "cloud-ml-dev"
 model = "xgboost_criteo"
-version = "xgboost_criteo"
+version = "xgboost_criteo_four_core"
 task_name = "CMLE SDK Benchmark"
 
 class CmleSdkClient(object):
@@ -42,6 +42,7 @@ class UserTasks(TaskSet):
 
         credentials = GoogleCredentials.get_application_default()
         api = discovery.build('ml', 'v1', credentials=credentials, cache_discovery=False)
+        #api = discovery.build('ml', 'v1', cache_discovery=False)
         parent = "projects/{}/models/{}/versions/{}".format(project, model, version)
         self.client.execute(name=task_name, api=api, parent=parent, payload=payload)
 

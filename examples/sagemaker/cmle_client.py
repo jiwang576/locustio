@@ -10,7 +10,7 @@ class UserTasks(TaskSet):
         with open(fname, 'rb') as f:
             payload = f.read()
         #token = subprocess.check_output(["gcloud", "auth", "print-access-token"])
-        token = "ya29.GlyRBciEfhoLd604sWkdK0SnplsTG_O0SM0ftxB5kOzV3iacwEqOR2_pzuyN-5beQOuH85zBAJG2UWx7IWQ6QjQUuJBXJ4t-s2FKKW9my3_1mxNEZVpVk2SQaoAAzQ\n"
+        token = "ya29.GlyaBcqSiqYKmKTXkqFrP2bgql0m_X7EJ8408BaaYm0L8Op_Ps7mFy0fngqfKtdKB0JJlHqrbVeCvC7BxdpUSeEZdRFtk8JNxYqsC0hGO9S0_t_4wmBL_1ZoLMBSXA\n"
         self.client.headers['Authorization'] = 'Bearer ' + token[:-1]
         self.client.post("", payload, auth="something")
             
